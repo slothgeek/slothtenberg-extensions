@@ -7,7 +7,24 @@ import { InspectorControls } from "@wordpress/block-editor";
 
 import './style.scss';
 
+const blockList = [
+	'core/buttons',
+	'core/group',
+	'core/image',
+	'core/cover',
+	'core/columns',
+	'core/site-logo',
+	'core/paragraph',
+	'core/heading'
+];
+
+
 const addAttributes = (settings) => {
+
+
+	if(blockList.indexOf(settings.name) == -1)
+		return settings;
+
 	if (typeof settings.attributes !== "undefined") {
 		settings.attributes = Object.assign(settings.attributes, {
 			hideOnDesktop: {
@@ -22,6 +39,14 @@ const addAttributes = (settings) => {
 				type: "boolean",
 				default: false,
 			},
+			hideOnLogIn: {
+				type: "boolean",
+				default: false,
+			},
+			hideOnLogOut: {
+				type: "boolean",
+				default: false,
+			},
 		});
 	}
 
@@ -30,8 +55,17 @@ const addAttributes = (settings) => {
 
 const withInspectorControl = createHigherOrderComponent((BlockEdit) => {
 	return (props) => {
-		const { attributes } = props;
-		const { hideOnDesktop, hideOnTablet, hideOnMobile } = attributes;
+
+		const { attributes, name } = props;
+
+		if(blockList.indexOf(name) == -1)
+			return (
+				<>
+					<BlockEdit {...props} />
+				</>
+			);
+
+		const { hideOnDesktop, hideOnTablet, hideOnMobile, hideOnLogIn, hideOnLogOut } = attributes;
 
 		return (
 			<>
@@ -61,6 +95,20 @@ const withInspectorControl = createHigherOrderComponent((BlockEdit) => {
 								props.setAttributes({ hideOnMobile: !hideOnMobile })
 							}
 						/>
+						<ToggleControl
+							checked={hideOnLogIn}
+							label={__("Hide on login", "block-visibility")}
+							onChange={() =>
+								props.setAttributes({ hideOnLogIn: !hideOnLogIn })
+							}
+						/>
+						<ToggleControl
+							checked={hideOnLogOut}
+							label={__("Hide on logout", "block-visibility")}
+							onChange={() =>
+								props.setAttributes({ hideOnLogOut: !hideOnLogOut })
+							}
+						/>
 					</PanelBody>
 				</InspectorControls>
 			</>
@@ -69,12 +117,17 @@ const withInspectorControl = createHigherOrderComponent((BlockEdit) => {
 }, "withInspectorControl");
 
 const addVisibilityClasses = (extraProps, blockType, attributes) => {
-	const { hideOnDesktop, hideOnTablet, hideOnMobile } = attributes;
+	const { hideOnDesktop, hideOnTablet, hideOnMobile, hideOnLogIn, hideOnLogOut } = attributes;
+
+	if(blockList.indexOf(blockType.name) == -1)
+		return extraProps;
 
 	extraProps.className = classnames(extraProps.className, {
 		"hide-on-desktop": hideOnDesktop,
 		"hide-on-tablet": hideOnTablet,
 		"hide-on-mobile": hideOnMobile,
+		"hide-on-login": hideOnLogIn,
+		"hide-on-logout": hideOnLogOut,
 	});
 
 	return extraProps;
@@ -82,14 +135,19 @@ const addVisibilityClasses = (extraProps, blockType, attributes) => {
 
 const addVisibilityEditorClasses = createHigherOrderComponent( ( BlockListBlock ) => {
 	return ( props ) => {
-		const { attributes } = props;
+		const { attributes, name } = props;
 
-		const { hideOnDesktop, hideOnTablet, hideOnMobile } = attributes;
+		if(blockList.indexOf(name) == -1)
+			return <BlockListBlock { ...props } />;
+
+		const { hideOnDesktop, hideOnTablet, hideOnMobile, hideOnLogIn, hideOnLogOut } = attributes;
 
 		const visibilityClasses = classnames({
 			"hide-on-desktop": hideOnDesktop,
 			"hide-on-tablet": hideOnTablet,
 			"hide-on-mobile": hideOnMobile,
+			"hide-on-login": hideOnLogIn,
+			"hide-on-logout": hideOnLogOut,
 		});
 
 		return <BlockListBlock { ...props } className={ visibilityClasses } />;

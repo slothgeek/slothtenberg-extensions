@@ -18,3 +18,17 @@
 	}
   }
 }
+
+body{
+  &.logged-in{
+	.hide-on-login{
+	  display: none!important;
+	}
+  }
+
+  &:not(.logged-in){
+	.hide-on-logout{
+	  display: none!important;
+	}
+  }
+}
